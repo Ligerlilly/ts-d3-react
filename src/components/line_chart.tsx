@@ -46,6 +46,7 @@ export default class LineChart extends React.Component<IProps> {
             .range([height - margin.bottom, margin.top])
 
         const lineCalc = line<number>()
+            .defined(d => !isNaN(d))
             .x((d: any) => x(`${d}`) || 0)
             .y((d: any) => y(d))
 
