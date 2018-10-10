@@ -2,6 +2,7 @@ import * as React from 'react';
 import './App.css';
 import logo from './logo.svg';
 import BarChart from "./components/bar_chart"
+import LineChart from "./components/line_chart"
 
 class App extends React.Component {
   public render() {
@@ -15,6 +16,7 @@ class App extends React.Component {
           To get started, edit <code>src/App.tsx</code> and save to reload.
         </p>
         <BarChart data={[1, 2, 3, 4, 5]} height={500} width={500} />
+        <LineChart data={[1, 2, 3, 4, 5]} height={500} width={500} />
       </div>
     );
   }
