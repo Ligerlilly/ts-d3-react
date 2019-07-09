@@ -1,19 +1,24 @@
 import * as React from 'react'
 import { select, Selection, BaseType } from 'd3-selection'
-import { scaleBand, scaleLinear, ScaleBand, ScaleLinear } from 'd3-scale'
+import { scaleLinear } from 'd3-scale'
 import { axisBottom, axisLeft } from 'd3-axis'
 import { max } from 'd3-array'
 
-interface BarChartProps {
-    data: number[];
+interface IProps {
+    data: IPoint[];
     width: number;
     height: number;
 }
 
+interface IPoint {
+    readonly x: number
+    readonly y: number
+}
 
-export default class BarChart extends React.Component<BarChartProps> {
+
+export default class ScatterChart extends React.Component<IProps> {
     private svgRef?: SVGElement | null;
-    constructor(props: BarChartProps) {
+    constructor(props: IProps) {
         super(props)
         this.drawChart = this.drawChart.bind(this)
     }
@@ -22,27 +27,35 @@ export default class BarChart extends React.Component<BarChartProps> {
         this.drawChart(this.props.data);
     }
 
-    private drawChart(data: number[]) {
+    public componentWillReceiveProps(nextProps: IProps) {
+        if (nextProps.data !== this.props.data) {
+            this.drawChart(nextProps.data);
+        }
+    }
+
+    private drawChart(data: IPoint[]) {
         const svg = select(this.svgRef!);
         const margin = ({ top: 20, right: 0, bottom: 30, left: 40 })
         const { width, height } = this.props;
 
-        const x: ScaleBand<string> = scaleBand()
-            .domain(data.map(d => `${d}`))
+        const x = scaleLinear()
+            .domain([0, max(data, d => d.y) || 0]).nice()
             .range([margin.left, width - margin.right])
-            .padding(0.1)
 
-        const y: ScaleLinear<number, number> = scaleLinear()
-            .domain([0, max(data, d => d) || 0]).nice()
+        const y = scaleLinear()
+            .domain([0, max(data, d => d.y) || 0]).nice()
             .range([height - margin.bottom, margin.top])
 
         svg.append("g")
-            .attr("fill", "steelblue")
-            .selectAll("rect").data(data).enter().append("rect")
-            .attr("x", d => x(`${d}`) || "")
-            .attr("y", d => y(d))
-            .attr("height", d => y(0) - y(d))
-            .attr("width", x.bandwidth())
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("fill", "steelblue")
+        .selectAll("circle")
+        .data(data)
+        .enter().append("circle")
+        .attr("cx", d => x(d.x))
+        .attr("cy", d => y(d.y))
+        .attr("r", 4);
 
         const xAxis = (g: Selection<BaseType, {}, null, undefined>) => g
             .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -58,7 +71,7 @@ export default class BarChart extends React.Component<BarChartProps> {
             .call(xAxis);
 
         svg.append("g")
-            .call(yAxis);
+            .call(yAxis)
     }
 
     public render() {
